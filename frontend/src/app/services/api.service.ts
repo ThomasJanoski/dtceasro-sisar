@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -19,8 +19,16 @@ export class ApiService {
     }
   }
 
-  login(username: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/login`, { username, password });
+  private authHeaders(): { headers?: HttpHeaders } {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      return { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) };
+    }
+    return {};
+  }
+
+  login(usuario: string, senha: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/login`, { usuario, senha });
   }
 
   getCaixas(tipo?: string): Observable<any[]> {
@@ -28,22 +36,22 @@ export class ApiService {
     if (tipo) {
       params = params.set('tipo', tipo);
     }
-    return this.http.get<any[]>(`${this.baseUrl}/caixas`, { params });
+    return this.http.get<any[]>(`${this.baseUrl}/caixas`, { params, ...this.authHeaders() });
   }
 
   getCaixa(id: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/caixas/${id}`);
+    return this.http.get(`${this.baseUrl}/caixas/${id}`, this.authHeaders());
   }
 
   createCaixa(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/caixas`, payload);
+    return this.http.post(`${this.baseUrl}/caixas`, payload, this.authHeaders());
   }
 
   updateCaixa(id: number, payload: any): Observable<any> {
-    return this.http.put(`${this.baseUrl}/caixas/${id}`, payload);
+    return this.http.put(`${this.baseUrl}/caixas/${id}`, payload, this.authHeaders());
   }
 
   deleteCaixa(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/caixas/${id}`);
+    return this.http.delete(`${this.baseUrl}/caixas/${id}`, this.authHeaders());
   }
 }

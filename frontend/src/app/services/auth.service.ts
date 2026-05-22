@@ -7,11 +7,13 @@ import { tap } from 'rxjs';
 export class AuthService {
   constructor(private api: ApiService, private router: Router) {}
 
-  login(username: string, password: string) {
-    return this.api.login(username, password).pipe(
+  login(usuario: string, senha: string) {
+    return this.api.login(usuario, senha).pipe(
       tap((result) => {
         localStorage.setItem('auth_token', result.token);
-        localStorage.setItem('auth_user', result.user.usuario);
+      
+        const userName = result.user?.usuario;
+        localStorage.setItem('auth_user', userName);
       })
     );
   }

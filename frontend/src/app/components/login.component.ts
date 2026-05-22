@@ -18,24 +18,22 @@ import { AuthService } from '../services/auth.service';
 
         <form [formGroup]="form" (ngSubmit)="submit()">
           <div class="form-group">
-            <label for="username">Usuário</label>
+            <label for="usuario">Usuário</label>
             <input 
-              id="username" 
-              formControlName="username" 
+              id="usuario" 
+              formControlName="usuario" 
               autocomplete="username"
-              placeholder="Digite seu usuário"
-              [disabled]="isLoading" />
+              placeholder="Digite seu usuário" />
           </div>
 
           <div class="form-group">
-            <label for="password">Senha</label>
+            <label for="senha">Senha</label>
             <input 
-              id="password" 
+              id="senha" 
               type="password" 
-              formControlName="password" 
+              formControlName="senha" 
               autocomplete="current-password"
-              placeholder="Digite sua senha"
-              [disabled]="isLoading" />
+              placeholder="Digite sua senha" />
           </div>
 
           <button 
@@ -49,7 +47,7 @@ import { AuthService } from '../services/auth.service';
           </button>
         </form>
 
-        <div class="error" *ngIf="error" [@fadeIn]>
+        <div class="error" *ngIf="error">
           <span>⚠️</span> {{ error }}
         </div>
       </div>
@@ -223,8 +221,8 @@ export class LoginComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
     this.form = this.fb.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required]],
+      usuario: ['', [Validators.required]],
+      senha: ['', [Validators.required]],
     });
   }
 
@@ -237,18 +235,26 @@ export class LoginComponent implements OnInit {
 
     this.isLoading = true;
     this.error = '';
-    
-    const username = this.form.value.username ?? '';
-    const password = this.form.value.password ?? '';
-    
-    this.auth.login(username, password).subscribe({
+    this.form.disable();
+
+    const usuario = this.form.get('usuario')?.value ?? '';
+    const senha = this.form.get('senha')?.value ?? '';
+
+    this.auth.login(usuario, senha).subscribe({
       next: () => {
         this.isLoading = false;
+        this.form.enable();
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.error = err?.error?.message ?? 'Falha no login. Verifique usuário e senha.';
+        this.form.enable();
+        const serverMessage = err?.error?.message;
+        if (err?.status === 401) {
+          this.error = serverMessage || 'Usuário ou senha inválidos.';
+        } else {
+          this.error = serverMessage || 'Falha no login. Verifique sua conexão e tente novamente.';
+        }
       },
     });
   }
